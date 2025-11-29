@@ -1,3 +1,6 @@
+# Kinoko-Survivor
+Kinoko adventure
+
 # 2D Action Rogue-Lite (Prototype)
 
 C++ の文法習得とゲーム制作経験を目的とした  
