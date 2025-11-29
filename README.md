@@ -78,3 +78,5 @@ C++ の文法習得とゲーム制作経験を目的とした
 
 ## 📁 Repository Structure (予定)
 
+# Kinoko-Survivor
+Kinoko adventure
