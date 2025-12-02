@@ -1,13 +1,13 @@
 #include <raylib.h>
-#include "state/StateManager.hpp"
-#include "state/StartState.hpp"
+#include "states/GameStates/StateManager.hpp"
+#include "states/GameStates/StartState.hpp"
 
 int main() {
-    InitWindow(800, 450, "State Pattern Example");
+    InitWindow(800, 450, "Kinoko Survivor");
     SetTargetFPS(60);
 
     StateManager manager;
-    manager.ChangeState<StartState>();  // 最初はスタート画面
+    manager.ChangeState<StartState>(); 
 
     while (!WindowShouldClose()) {
         BeginDrawing();
