@@ -2,6 +2,8 @@
 #include <raylib.h>
 #include "GameState.hpp"
 
+namespace ks {
+
 class PlayState : public GameState {
 public:
     void Update(StateManager& manager) override {
@@ -16,3 +18,5 @@ public:
         DrawText("GAME START!", 120, 200, 40, WHITE);
     }
 };
+
+} // namespace ks

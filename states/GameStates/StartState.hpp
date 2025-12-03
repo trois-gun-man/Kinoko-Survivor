@@ -6,6 +6,8 @@
 #include "StateManager.hpp"
 #include "PlayState.hpp"
 
+namespace ks {
+
 class StartState : public GameState {
 public:
     StartState() {
@@ -157,3 +159,5 @@ private:
         }
     }
 };
+
+} // namespace ks

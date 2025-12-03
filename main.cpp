@@ -2,6 +2,9 @@
 #include "states/GameStates/StateManager.hpp"
 #include "states/GameStates/StartState.hpp"
 
+using ks::StateManager;
+using ks::StartState;
+
 int main() {
     InitWindow(800, 450, "Kinoko Survivor");
     SetTargetFPS(60);

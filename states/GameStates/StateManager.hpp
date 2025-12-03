@@ -2,6 +2,8 @@
 #include <memory>
 #include "GameState.hpp"
 
+namespace ks {
+
 class StateManager {
 private:
     std::unique_ptr<GameState> currentState;
@@ -20,3 +22,5 @@ public:
         if (currentState) currentState->Draw();
     }
 };
+
+} // namespace ks
