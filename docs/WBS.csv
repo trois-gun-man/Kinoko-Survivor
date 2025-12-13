@@ -1,0 +1,45 @@
+Task Name,Assignee,Hours,Priority,Dependencies
+Create Entity Abstract,A,2,High,
+Create Component Interfaces,A,2,High,Create Entity Abstract
+Create IState,A,1,High,Create Entity Abstract
+Create GameState Abstract,A,1,High,
+Implement StateMachine,A,2,High,IState
+Create PlayerBase,A,2,High,Create Entity Abstract
+Create PlayerMoveState,A,2,High,Implement StateMachine
+Create PlayerAttackState,A,2,High,Implement StateMachine
+Create EnemyBase,A,2,High,Create Entity Abstract
+Create EnemyChaseState,A,2,High,Implement StateMachine
+Create GameStateManager,A,2,High,Create GameState Abstract
+Create StartState,A,1,High,Create GameStateManager
+Create PlayState,A,1,High,Create GameStateManager
+Create ResultState,A,1,High,Create GameStateManager
+Create CharacterFactory,A,2,High,Create PlayerBase
+Create ItemBase,B,1,High,
+Create ItemFactory,B,2,High,Create ItemBase
+Create AIStrategy Abstract,A,1,High,
+Create SimpleChaseAI,A,2,High,AIStrategy Abstract
+Create BuffStrategy Abstract,B,1,Mid,
+Create AttackBuff,B,1,Mid,BuffStrategy Abstract
+Create StageBasic,B,2,High,
+Create BackgroundScroll,B,1,High,Create StageBasic
+Create EnemySpawner,B,2,High,Create EnemyBase
+Create TreasureChest,B,2,Mid,Create StageBasic
+Create EventBus,A,2,High,
+Create HPBarUI,B,2,High,EventBus
+Create XPBarUI,B,2,Mid,EventBus
+Create ResultScreen,B,1,Mid,Create ResultState
+Create PlayerSpriteBasic,C,4,High,
+Create EnemySpriteBasic,C,3,High,
+Create ItemIcon,C,1,Mid,
+Create ChestSprite,C,1,Mid,
+Create HitEffect,C,1,Low,
+Select BGM,C,2,Mid,
+Create SE,C,2,High,
+Integrate Animation,C,2,High,Create PlayerSpriteBasic
+Integration Test,A,3,High,Create PlayState
+Bug Fix Critical,A,2,High,Integration Test
+Performance Light Fix,A,1,Low,Bug Fix Critical
+Gameplay Test,B,2,High,Create EnemySpawner
+UI Bug Fix,B,1,Mid,Gameplay Test
+Sound Balance Test,C,1,Mid,Create SE
+Final Polish,C,1,Low,
