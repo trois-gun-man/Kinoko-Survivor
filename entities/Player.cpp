@@ -45,7 +45,7 @@ bool Player::isDead() const {
 }
 
 // 当たり判定半径を返す
-float Player::radius() const {
+Vector2 Player::radius() const {
     return m_radius;
 }
 
@@ -87,7 +87,7 @@ void Player::moveHorizontally(float direction, float dt) {
 // 移動範囲からはみ出さないように座標を調整する
 void Player::clampToBounds() {
     const Vector2 pos = m_position.toVector();
-    const float clampedX = std::max(m_minX + m_radius, std::min(m_maxX - m_radius, pos.x));
+    const float clampedX = std::max(m_minX /*+ m_radius.x/2*/, std::min(m_maxX /*- m_radius.x/2*/, pos.x));
     m_position.set(clampedX, m_groundY);
 }
 

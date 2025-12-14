@@ -236,7 +236,7 @@ void Enemy::drawSprite() const {
 
 // テクスチャが無いときの簡易描画
 void Enemy::drawFallback() const {
-    m_render.draw(m_position.toVector(), m_radius, Color{200, 80, 80, 255});
+//    m_render.draw(m_position.toVector(), m_radius, Color{200, 80, 80, 255});
 }
 
 // ステートマシンの所有者と現在状態を再紐付けする

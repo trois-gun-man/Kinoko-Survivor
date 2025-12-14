@@ -42,8 +42,9 @@ constexpr char kHpLabel[] = "HP";
 
 PlayState::PlayState() {
     loadBackground();
-    Enemy::AcquireSpriteSheet(enemySpritePath);
-    m_player.setGround(m_groundY);
+    Enemy::AcquireSpriteSheet(enemySpritePath); 
+    float adjusted_player_yPosition = m_groundY - 42.0f;
+    m_player.setGround(adjusted_player_yPosition); 
     m_player.setMovementBounds(m_laneLeft, m_laneRight);
     m_player.setPosition((m_laneLeft + m_laneRight) * kLaneCenterFactor);
 

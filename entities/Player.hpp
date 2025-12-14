@@ -28,7 +28,7 @@ public:
     // 体力が尽きたか判定する
     [[nodiscard]] bool isDead() const;
     // 当たり判定半径を返す
-    [[nodiscard]] float radius() const;
+    [[nodiscard]] Vector2 radius() const;
     // 現在 HP を返す
     [[nodiscard]] int health() const;
     // 最大 HP を返す
@@ -56,21 +56,19 @@ private:
     StateMachine m_stateMachine;
     // 実際の行動ロジック
     PlayerMoveState m_moveState;
-    // 移動速度
-    float m_speed = 220.0f;
-    // 描画・当たり判定半径
-    float m_radius = 18.0f;
-    // 足場の高さ
-    float m_groundY = 360.0f;
      static constexpr float kDefaultSpeed = 220.0f;
-     static constexpr float kDefaultRadius = 18.0f;
-     static constexpr float kDefaultGroundY = 360.0f;
+     static constexpr Vector2 kDefaultRadius = {36.0f, 36.0f};
+     static constexpr float kDefaultGroundY = 400.0f;
      static constexpr float kDefaultMinX = 0.0f;
      static constexpr float kDefaultMaxX = 800.0f;
      static constexpr int kDefaultMaxHealth = 100;
+    // 移動速度
      float m_speed = kDefaultSpeed;
-     float m_radius = kDefaultRadius;
+    // 描画・当たり判定半径
+     Vector2 m_radius = kDefaultRadius;
+    // 足場の高さ
      float m_groundY = kDefaultGroundY;
+
      float m_minX = kDefaultMinX;
      float m_maxX = kDefaultMaxX;
 };

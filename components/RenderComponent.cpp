@@ -31,18 +31,18 @@ void RenderComponent::setFallback(Color color) {
 }
 
 // スプライトがあればテクスチャ描画、無ければ円形で代用する
-void RenderComponent::draw(const Vector2& position, float radius, Color tint) const {
+void RenderComponent::draw(const Vector2& position, Vector2 size, Color tint) const {
     if (m_hasSprite) {
-        const float diameter = radius * 2.0f;
-        const Rectangle source{0.0f, 0.0f, static_cast<float>(m_sprite.width), static_cast<float>(m_sprite.height)};
-        const Rectangle dest{position.x - radius, position.y - radius, diameter, diameter};
-        const Vector2 origin{0.0f, 0.0f};
-        DrawTexturePro(m_sprite, source, dest, origin, 0.0f, tint);
-        return;
+       // const float diameter = radius * 2.0f;
+       // const Rectangle source{0.0f, 0.0f, static_cast<float>(m_sprite.width), static_cast<float>(m_sprite.height)};
+       // const Rectangle dest{position.x - radius, position.y - radius, diameter, diameter};
+       // const Vector2 origin{0.0f, 0.0f};
+       // DrawTexturePro(m_sprite, source, dest, origin, 0.0f, tint);
+       // return;
     }
 
     const Color color = (tint.a > 0) ? tint : m_fallbackColor;
-    DrawCircleV(position, radius, color);
+    DrawRectangleV(position, size, color);
 }
 
 } // namespace ks

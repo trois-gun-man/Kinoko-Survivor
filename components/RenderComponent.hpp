@@ -15,7 +15,7 @@ public:
     // フォールバック描画色を変更する
     void setFallback(Color color);
     // 有効なテクスチャがあればスプライトを、それ以外は円を描画する
-    void draw(const Vector2& position, float radius, Color tint = WHITE) const;
+    void draw(const Vector2& position, Vector2 size, Color tint = WHITE) const;
 
 private:
     // 描画に使用するテクスチャ
