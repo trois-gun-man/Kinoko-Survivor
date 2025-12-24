@@ -1,75 +1,95 @@
-# レイヤー別フォルダ / クラス構成
+# レイヤー別フォルダ / クラス構成（最新版）
 
-プロジェクト内のフォルダ構成をレイヤー単位で整理し、各フォルダに紐づく主要クラスを下表とセクションでまとめる。`docs/mermaid.md` のクラス図および `docs/WBS.csv` の作業項目を反映した計画構成であり、今後の実装指針として利用できる。
+`docs/mermaid.md` のクラス図と現在のソースを突き合わせ、実装済みレイヤーとスタブ状態の要素を整理した。フォルダ構成全体を俯瞰できるようディレクトリツリー、レイヤー別の役割表、詳細説明、現状サマリをこの 1 ファイルに集約している。
 
 ```
 d:\gameProduct
-├─ main.cpp                       // エントリポイント / ゲームループ
-├─ states/
-│   └─ GameStates/
-│        ├─ GameState.hpp        // 抽象ゲームステート
-│        ├─ StateManager.hpp     // ステート管理
-│        ├─ StartState.hpp       // タイトル / 開始ステート
-│        └─ PlayState.hpp        // プレイ中ステート（ResultStateは今後追加）
-├─ assets/                       // スプライト・サウンドなどのリソース
-├─ docs/                         // 設計資料（本ファイル含む）
-├─ entities/                     // ★予定：Entity / Component 実装
-├─ components/                   // ★予定：Position, Render, Health など
+├─ main.cpp                        // ゲームループのエントリ
+├─ states/GameStates/              // Start / Play / Result + StateManager
+├─ entities/                       // Entity 抽象 / Player / Enemy
+├─ components/                     // Position / Render / Health
 ├─ systems/
-│   ├─ state_machine/            // ★予定：StateMachine + IState 実装
-│   ├─ factories/                // ★予定：CharacterFactory, ItemFactory
-│   ├─ ai/                       // ★予定：AIStrategy, SimpleChaseAI 等
-│   └─ items/                    // ★予定：BuffStrategy, AttackBuff 等
-├─ ui/                           // ★予定：UIHealthBar, UIResultScreen 等
-└─ audio/                        // ★予定：AudioManager
+│   ├─ state_machine/              // IState / StateMachine / PlayerMove / EnemyChase
+│   ├─ ai/                         // AIStrategy / SimpleChaseAI / RangedAI
+│   ├─ factories/                  // EnemySpawner 実装 / 他はスタブ
+│   ├─ items/                      // BuffStrategy / Attack/Speed/Heal (スタブ)
+│   └─ events/                     // EventBus スタブ
+├─ stages/                         // StageBasic / BackgroundScroll スタブ
+├─ ui/                             // UIHealthBar など UI スタブ
+├─ audio/                          // AudioManager スタブ
+├─ assets/                         // 画像・サウンド
+└─ docs/                           // 設計資料（本ファイル含む）
 ```
 
-表中の「予定」フォルダは WBS の優先タスクとして今後作成する想定のもの。
-
-| レイヤー | 主担当フォルダ | 代表クラス / インターフェース | 役割 | 備考 |
+| レイヤー | 主担当フォルダ | 代表クラス / インターフェース | 実装状況 | 備考 |
 | --- | --- | --- | --- | --- |
-| アプリケーション (State) | `main.cpp`, `states/GameStates` | `StateManager`, `GameState`, `StartState`, `PlayState`, `ResultState(予定)` | ゲーム全体のライフサイクル制御、ゲームループ、ステート遷移 | `main.cpp` から `StateManager` を初期化し、入力/更新/描画を委譲 |
-| エンティティ基盤 (Entity) | `entities/` | `Entity`, `Player`, `Enemy`, `ItemBase` | Entity 抽象と派生キャラクタの共通処理 | Bridge パターン: Entity が Component を保持 |
-| コンポーネント (Component) | `components/` | `PositionComponent`, `RenderComponent`, `HealthComponent` | データ/機能を細分化し、Entity が組み合わせて利用 | 依存を減らしテスト容易性を確保 |
-| 行動制御 (StateMachine) | `systems/state_machine` | `StateMachine`, `IState`, `PlayerMoveState`, `EnemyChaseState` | Actor 行動の状態遷移と更新ロジック | IState 実装でアクションを差し替え |
-| ファクトリ (Factory) | `systems/factories` | `CharacterFactory`, `ItemFactory`, `EnemySpawner`, `TreasureChest` | 生成手順の共通化・依存注入 | プレイヤー/敵/アイテム生成を一元管理 |
-| AI ストラテジ (Strategy) | `systems/ai` | `AIStrategy`, `SimpleChaseAI`, `RangedAI` | 敵 AI 方針の差し替え | `Enemy` が保持する戦略オブジェクト |
-| アイテム効果 (Item Strategy) | `systems/items` | `BuffStrategy`, `AttackBuff`, `SpeedBuff`, `HealBuff` | 装備/アイテム効果の差し替え | ItemFactory で戦略を組み合わせる |
-| イベント & UI (Observer) | `ui/` | `UIHealthBar`, `UIExpBar`, `UIResultScreen`, `EventBus` | HUD/結果画面の更新、イベント購読 | EventBus で HP 変更等を通知 |
-| オーディオ (Observer) | `audio/` | `AudioManager` | 効果音/BGM の購読と再生 | EventBus でゲームイベントに追従 |
+| アプリケーション (State) | `main.cpp`, `states/GameStates` | `StateManager`, `GameState`, `StartState`, `PlayState`, `ResultState` | 実装済み | `main.cpp` → `StateManager.ChangeState<StartState>()` で起動。`PlayState` から `ResultState` へ遷移済み。 |
+| エンティティ基盤 (Entity) | `entities/`, `components/` | `Entity`, `Player`, `Enemy`, `PositionComponent`, `RenderComponent`, `HealthComponent` | 実装済み | `Player`/`Enemy` が Component を集約。`Enemy` は共有スプライトや攻撃トリガあり。 |
+| 行動制御 (StateMachine) | `systems/state_machine` | `StateMachine`, `IState`, `PlayerMoveState`, `EnemyChaseState`, `PlayerAttackState(スタブ)` | コア実装済み | `PlayerMoveState`/`EnemyChaseState` 稼働。攻撃・ダメージ系ステートは TODO。 |
+| AI ストラテジ | `systems/ai` | `AIStrategy`, `SimpleChaseAI`, `RangedAI` | 実装済み | `Enemy` が `std::unique_ptr<AIStrategy>` を保持し `decideAction()` を委譲。 |
+| ファクトリ / スポナー | `systems/factories` | `EnemySpawner`, `CharacterFactory(スタブ)`, `ItemFactory(スタブ)`, `TreasureChest(スタブ)` | スポナーのみ実装 | `EnemySpawner` が波生成やレーン設定を担当。その他は API 宣言のみ。 |
+| アイテム効果 | `systems/items` | `ItemBase`, `BuffStrategy`, `AttackBuff`, `SpeedBuff`, `HealBuff` | スタブ | インターフェースのみで処理未定義。 |
+| UI & イベント | `ui/`, `systems/events` | `UIHealthBar`, `UIExpBar`, `UILevelText`, `UIPopup`, `UIResultScreen`, `EventBus` | 未実装 | すべてヘッダのみ。EventBus も subscribe/publish 宣言だけ。 |
+| オーディオ | `audio/` | `AudioManager` | 未実装 | EventBus 連携前提の骨組みのみ。 |
+| ステージ / 表現 | `stages/` | `StageBasic`, `BackgroundScroll` | 未実装 | API シグネチャのみ。 |
 
 ## レイヤー詳細
 
 ### 1. アプリケーション / ステートレイヤー
-- `main.cpp` はシングルエントリ。`StateManager` を生成し、現在の `GameState` に更新/描画を委譲。
-- `GameState` 抽象は `enter/update/render/exit` などの共通インターフェースを定義。
-- `StartState` → `PlayState` → `ResultState` の遷移を `StateManager` が扱い、`states/GameStates` 配下に配置。
+- `main.cpp` は raylib ウィンドウを初期化し、ループ中に `StateManager.Update()` → `Draw()` を毎フレーム呼び出す。
+- `StateManager` は `std::unique_ptr<GameState>` を保持し、テンプレート `ChangeState` で遷移。
+- `StartState` ではタイトル画像アニメとメニュー入力を処理、`PlayState` ではプレイ中ロジックを更新、`ResultState` でリザルトメニューを描画し `RETRY/EXIT` を扱う。
 
 ### 2. エンティティ / コンポーネントレイヤー
-- `entities/` 直下に `Entity` 抽象、`Player`, `Enemy` など派生クラス。
-- `components/` フォルダに Position/Render/Health などの小さな責務を持つコンポーネントを配置し、Entity が集約して Bridge パターンを構成。
+- `Entity` は `update(float)` / `render()` を純粋仮想で定義。
+- `Player` は `Position/Render/Health` と `StateMachine` を保持し、`moveHorizontally()` や `applyDamage()` などの API を提供。
+- `Enemy` はスプライト共有管理、`AIStrategy` 差し替え、攻撃レンジ／クールダウン管理、`EnemyChaseState` 連携を実装。
+- `PositionComponent`/`RenderComponent`/`HealthComponent` は責務分割された軽量コンポーネントで、`Player`/`Enemy` から直接利用されている。
 
 ### 3. 行動制御 (StateMachine) レイヤー
-- `systems/state_machine` に `StateMachine` 実装と `IState` インターフェース、および `PlayerMoveState`, `PlayerAttackState`, `EnemyChaseState` 等の具体ステートを格納。
-- `StateMachine` はエンティティ固有の `IState` をハンドリングし、`decideAction` などのトリガを実行。
+- `StateMachine` がエンティティ固有の `IState` を保持し、`changeState()` で `exit/enter` を呼び分ける。
+- `PlayerMoveState` は入力から方向を読み `Player::moveHorizontally()` に伝達。
+- `EnemyChaseState` は `AIStrategy` の結果を監視し、移動範囲の clamp、アニメーション状態更新、攻撃イベントを `Enemy` に書き込む。
+- `PlayerAttackState` / `PlayerDamageState` は TODO のままなので、近々の実装対象として残っている。
 
 ### 4. ファクトリ / AI / アイテムレイヤー
-- `systems/factories` で `CharacterFactory`, `ItemFactory`, `EnemySpawner`, `TreasureChest` など生成ロジックを集中管理。
-- `systems/ai` では `AIStrategy` 基底と `SimpleChaseAI`, `RangedAI` を実装し、`Enemy` へ依存注入。
-- `systems/items` に `BuffStrategy` 派生 (`AttackBuff`, `SpeedBuff`, `HealBuff`) を配置。`ItemFactory` から組み合わせる。
+- `EnemySpawner` が唯一完成しており、プレイヤー参照・レーン幅・波パラメータを元に `std::vector<Enemy>` に敵を追加する。
+- `CharacterFactory`/`ItemFactory`/`TreasureChest` はメソッド宣言のみ。依存計画はあるがコードは未着手。
+- `AIStrategy` 派生 (`SimpleChaseAI`, `RangedAI`) はそれぞれ接近・間合い維持ロジックを備え、`Enemy` で `setStrategy()` によって注入できるようになっている。
+- `items` 配下の Buff クラスは `apply(Entity&)` をオーバーライドする予定のプレースホルダ。
 
-### 5. UI / オーディオレイヤー
-- `ui/` 配下で `UIHealthBar`, `UIExpBar`, `UILevelText`, `UIPopup`, `UIResultScreen` など HUD/結果画面を EventBus 経由でイベント購読。
-- `audio/` の `AudioManager` も EventBus を購読し、攻撃/被弾/結果イベントに応じて SE/BGM を制御。
+### 5. UI / オーディオ / イベント
+- `ui` フォルダの各クラスは `EventBus&` を受け取って HUD を更新する想定だが、描画ロジックや購読処理はまだ無い。
+- `EventBus` も subscribe/publish のシグネチャだけで、内部実装は未決定。
+- `AudioManager` は `update(float)` とコンストラクタのみ宣言されており、実際のサウンド制御はこれから。
 
-### 6. インフラ / 共有サービス
-- `systems/` 直下に `EventBus` を配置し、UI/Audio/Gameplay システム間の疎結合な通知を提供。
-- 共通ユーティリティは後日 `common/` フォルダを追加し、ログ、設定読み込み、タイマなどを集約する想定。
+### 6. ステージ / ビジュアル
+- `StageBasic` と `BackgroundScroll` は今後の演出レイヤー用スタブ。現在は `PlayState` が背景描画を直接担っているため、将来的にこれらへ委譲する。
 
-## 今後の追加タスク抜粋 (WBS 連動)
-- `entities/` と `components/` のフォルダ新設および抽象クラス実装（WBS: Create Entity Abstract, Create Component Interfaces）。
-- `systems/state_machine` で `IState` と `StateMachine` を実装後、プレイヤー/敵ステートを順次追加。
-- `systems/factories` で `CharacterFactory` → `ItemFactory` → `EnemySpawner` の順に実装し、依存フォルダを作成。
-- UI (`ui/`) と Audio (`audio/`) は EventBus 実装後に着手し、Observer パターンで接続。
+## 現状フォルダ別サマリ
 
-この構成をベースにフォルダ作成とクラス配置を行えば、レイヤー境界が明確になり、責務の分離と拡張の容易性を確保できる。
+| フォルダ | 主要ファイル | 状態 |
+| --- | --- | --- |
+| `main.cpp` | メインループ | 完成。`SetTargetFPS(60)` と `StateManager` 中心のループのみ。 |
+| `components/` | `HealthComponent`, `PositionComponent`, `RenderComponent` | 全て `.cpp` 含めて稼働。テクスチャ管理や clamping まで実装済み。 |
+| `entities/` | `Entity`, `Player`, `Enemy` | 完成。`Enemy` はムーブ/コピー禁止とムーブ後の `resetStateMachine()` など詳細実装あり。 |
+| `states/GameStates/` | `GameState`, `StateManager`, `StartState`, `PlayState`, `ResultState` | 3 ステート構成が稼働。リザルトで `RETRY` → `PlayState` へのラムダ遷移も実装済み。 |
+| `systems/state_machine/` | `StateMachine`, `IState`, `PlayerMoveState`, `EnemyChaseState`, `PlayerAttackState`, `PlayerDamageState` | 実働ステート 2 種、スタブ 2 種。StateMachine は `overrideState()` まで用意。 |
+| `systems/ai/` | `AIStrategy`, `SimpleChaseAI`, `RangedAI` | 完成。`SimpleChaseAI` は距離 1px で停止、`RangedAI` は 180±20 を維持。 |
+| `systems/factories/` | `EnemySpawner`, `CharacterFactory`, `ItemFactory`, `TreasureChest` | `EnemySpawner` 以外未着手。スポーン波設定やプレイヤー追従は実装済み。 |
+| `systems/items/` | `ItemBase`, `BuffStrategy`, `Attack/Speed/HealBuff` | すべて宣言のみ。 |
+| `systems/events/` | `EventBus` | subscribe/publish の空実装。 |
+| `ui/` | `UIHealthBar`, `UIExpBar`, `UILevelText`, `UIPopup`, `UIResultScreen` | コンストラクタ・描画メソッド宣言だけ。 |
+| `audio/` | `AudioManager` | EventBus 参照を受け取るだけの骨組み。 |
+| `stages/` | `StageBasic`, `BackgroundScroll` | いずれも空のシグネチャ。 |
+
+## 直近の優先タスク案
+
+1. `systems/events/EventBus` の実装 → UI / Audio / Buff へイベント通知経路を確保。
+2. `ui` クラス群の実装 → Player HP などを HUD へ分離し、`PlayState::drawUI()` の責務を削減。
+3. `systems/items` + `ItemFactory` → Buff 適用処理を具体化し、敵や宝箱との連携を整備。
+4. `PlayerAttackState` / `PlayerDamageState` の実装 → `StateMachine` を活かした挙動差し替えを実現。
+5. `AudioManager` と効果音再生 → EventBus 経由で攻撃/被弾イベントに追従。
+
+このドキュメントは今後もクラス追加や責務変更があれば更新する想定。差分が発生した場合は `docs/mermaid.md` と合わせて改訂し、WBS と同期させること。
+
