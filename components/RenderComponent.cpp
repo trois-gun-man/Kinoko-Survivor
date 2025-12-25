@@ -43,6 +43,7 @@ void RenderComponent::draw(const Vector2& position, float radius, Color tint) co
 
     const Color color = (tint.a > 0) ? tint : m_fallbackColor;
     DrawCircleV(position, radius, color);
+    
 }
 
 } // namespace ks

@@ -56,23 +56,22 @@ private:
     StateMachine m_stateMachine;
     // 実際の行動ロジック
     PlayerMoveState m_moveState;
+    static constexpr float kDefaultSpeed = 220.0f;
+    static constexpr float kDefaultRadius = 18.0f;
+    static constexpr float kDefaultGroundY = 360.0f;
+    static constexpr float kDefaultMinX = 0.0f;
+    static constexpr float kDefaultMaxX = 800.0f;
+    static constexpr int kDefaultMaxHealth = 100;
+
     // 移動速度
-    float m_speed = 220.0f;
+    float m_speed = kDefaultSpeed;
     // 描画・当たり判定半径
-    float m_radius = 18.0f;
+    float m_radius = kDefaultRadius;
     // 足場の高さ
-    float m_groundY = 360.0f;
-     static constexpr float kDefaultSpeed = 220.0f;
-     static constexpr float kDefaultRadius = 18.0f;
-     static constexpr float kDefaultGroundY = 360.0f;
-     static constexpr float kDefaultMinX = 0.0f;
-     static constexpr float kDefaultMaxX = 800.0f;
-     static constexpr int kDefaultMaxHealth = 100;
-     float m_speed = kDefaultSpeed;
-     float m_radius = kDefaultRadius;
-     float m_groundY = kDefaultGroundY;
-     float m_minX = kDefaultMinX;
-     float m_maxX = kDefaultMaxX;
+    float m_groundY = kDefaultGroundY;
+    // 移動範囲
+    float m_minX = kDefaultMinX;
+    float m_maxX = kDefaultMaxX;
 };
 
 } // namespace ks

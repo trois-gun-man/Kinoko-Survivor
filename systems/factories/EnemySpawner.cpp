@@ -7,7 +7,6 @@
 
 #include "../../entities/Enemy.hpp"
 #include "../../entities/Player.hpp"
-#include "../../systems/ai/RangedAI.hpp"
 #include "../../systems/ai/SimpleChaseAI.hpp"
 
 namespace ks {
@@ -19,7 +18,7 @@ constexpr float kIntervalStep = 0.2f;
 constexpr float kMinimumInterval = 0.8f;
 constexpr float kSpawnOffset = 60.0f;
 constexpr float kLaneBuffer = 200.0f;
-constexpr int kRangedSpawnThreshold = 70;
+constexpr int kEnemySpawnFlgBit = 0x0; // 0x1: エネミースポーンする、0x0: 無効化
 } // namespace
 
 void EnemySpawner::setPlayer(Player* player) {
@@ -64,6 +63,9 @@ void EnemySpawner::spawnWave(std::vector<Enemy>& outEnemies) {
 }
 
 void EnemySpawner::spawnOne(std::vector<Enemy>& outEnemies) {
+    if (kEnemySpawnFlgBit == 0x0 || m_player == nullptr) {
+        return;
+    }
     Enemy enemy;
     enemy.setGround(m_groundY);
     enemy.setMovementBounds(m_laneLeft - kLaneBuffer, m_laneRight + kLaneBuffer);
@@ -73,12 +75,8 @@ void EnemySpawner::spawnOne(std::vector<Enemy>& outEnemies) {
     } else {
         enemy.setPosition(m_laneRight + kSpawnOffset, m_groundY);
     }
-
-    if (GetRandomValue(0, 100) > kRangedSpawnThreshold) {
-        enemy.setStrategy(std::make_unique<RangedAI>());
-    } else {
-        enemy.setStrategy(std::make_unique<SimpleChaseAI>());
-    }
+    // 現状は近接タイプのみ
+    enemy.setStrategy(std::make_unique<SimpleChaseAI>());
 
     enemy.setTarget(m_player);
     outEnemies.push_back(std::move(enemy));
