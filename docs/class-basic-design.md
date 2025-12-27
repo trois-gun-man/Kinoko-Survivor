@@ -65,11 +65,11 @@
 - **備考 / TODO**: 攻撃/ダメージ/ジャンプ状態追加、EventBus への HP 通知
 
 ### Enemy (`entities/Enemy.*`)
-- **役割**: 敵キャラクタ（追跡AI）
-- **主要データ**: 共有スプライト、`PositionComponent`, `RenderComponent`, `HealthComponent`, `StateMachine`, `AIStrategy`, 攻撃タイマー
-- **主要操作**: `update`, `render`, `setStrategy`, `triggerAttack`
-- **依存関係**: `StateMachine`, `EnemyChaseState`, `AIStrategy`
-- **備考 / TODO**: エリート/ボス向け追加パラメータ、攻撃通知イベント
+- **役割**: 敵キャラクタ（レーン上を左右にパトロールしてプレイヤーを圧迫）
+- **主要データ**: 共有スプライト、`PositionComponent`, `RenderComponent`, `HealthComponent`, `StateMachine`, パトロール方向、移動制限、攻撃クールダウン値
+- **主要操作**: `update`, `render`, `setMovementBounds`, `setGround`, `consumeAttackEvent`
+- **依存関係**: `StateMachine`, `EnemyChaseState`
+- **備考 / TODO**: 行動ロジックはステート側に直書き。将来エリート向けにスピードや攻撃レンジを差し替える計画。
 
 ### PositionComponent / RenderComponent / HealthComponent
 - **役割**: 位置、描画、体力を個別管理し、Entity へ注入
@@ -108,85 +108,22 @@
 - **備考 / TODO**: Attack/Damage の実装、遷移条件の定義、StateMachine 経由の通知
 
 ### EnemyChaseState
-- **役割**: 敵の移動・攻撃ロジックをフレーム更新
-- **主要データ**: 攻撃クールダウン、目標追跡、向き
-- **主要操作**: `update` 内で `AIStrategy::decideAction`, 攻撃判定、向き更新
-- **依存関係**: `Enemy`, `AIStrategy`
-- **備考 / TODO**: レンジ攻撃、特殊アクション対応
+- **役割**: 敵の左右パトロールと簡易攻撃クールダウン管理
+- **主要データ**: パトロール方向、移動スピード、攻撃クールダウン
+- **主要操作**: `update` 内で一定速度で移動し、レーン端で折り返しつつアニメーション状態を更新
+- **依存関係**: `Enemy`
+- **備考 / TODO**: 追跡 AI を再導入する場合はここに専用サブステートや行動テーブルを噛ませる。
 
 ---
 
-## 4. AI / ファクトリ / アイテム
+## 4.  ファクトリ / アイテム
 
-### AIStrategy / SimpleChaseAI / RangedAI
-- **役割**: 敵挙動アルゴリズムの差し替え
-- **主要データ**: 目標距離、移動スピード係数など
-- **主要操作**: `decideAction(Enemy&, float dt)`
-- **依存関係**: `Enemy`
-- **備考 / TODO**: エリート/ボス AI の追加インターフェース整備
-
-### CharacterFactory / EnemySpawner / ItemFactory / TreasureChest
+###  EnemySpawner
 - **役割**: エンティティ・アイテム生成の集中化
 - **主要データ**:
-  - EnemySpawner: スポーン範囲、波定義、乱数エンジン
-  - TreasureChest: 報酬定義
+  - EnemySpawner: スポーン範囲、レーン設定、単一出現フラグ
 - **主要操作**:
-  - EnemySpawner: `update`, `spawnWave`
-  - CharacterFactory: `createPlayer`, `createEnemy` (予定)
-  - ItemFactory: `createRandomBuff` (予定)
-  - TreasureChest: `open`, `giveReward`
-- **依存関係**: `Player`, `Enemy`, `BuffStrategy`
-- **備考 / TODO**:
-  - Factory 実実装、DI 対応、宝箱演出
-
-### BuffStrategy / ItemBase / AttackBuff / SpeedBuff / HealBuff
-- **役割**: アイテム効果ポリモーフィズム
-- **主要データ**: 効果量、継続時間（予定）
-- **主要操作**: `BuffStrategy::apply(Entity&)`
-- **依存関係**: `Entity`
-- **備考 / TODO**: 具体的な効果ロジックと UI 通知の実装
+  - EnemySpawner: `setLane`, `update`（初回 1 体のみ生成）
+- **依存関係**: `Enemy`
 
 ---
-
-## 5. イベント / UI / オーディオ
-
-### EventBus (`systems/events/EventBus.hpp`)
-- **役割**: Observer パターンによるゆるやかな通知
-- **主要データ**: `std::unordered_map<int, std::vector<Callback>>`
-- **主要操作**: `subscribe(int, Callback)`, `publish(int, void*)`
-- **依存関係**: UI, Audio, Gameplay システム
-- **備考 / TODO**: イベント ID を列挙化、スレッドセーフ処理、解除 API
-
-### UI クラス群 (`ui/`)
-- **役割**: HP/EXP/レベル/ポップアップ/結果画面の表示
-- **主要データ**: EventBus 参照、表示用メトリクス、フォント/色設定
-- **主要操作**: `render()`, `onEvent(...)`
-- **依存関係**: `EventBus`, raylib
-- **備考 / TODO**: イベント購読処理、描画ロジック、レイアウト定義
-
-### AudioManager (`audio/AudioManager.hpp`)
-- **役割**: ゲームイベントに応じた SE/BGM 再生
-- **主要データ**: サウンドハンドル、イベント購読
-- **主要操作**: `initialize`, `update`, `onEvent`
-- **依存関係**: `EventBus`, raylib Audio API
-- **備考 / TODO**: 音量管理、リソースロード/解放、BGM ループ制御
-
----
-
-## 6. ステージ / 背景
-
-### StageBasic / BackgroundScroll
-- **役割**: ステージリソースの読み込みと背景演出
-- **主要データ**: 背景テクスチャ、スクロールパラメータ
-- **主要操作**: `load`, `update`, `draw`
-- **依存関係**: raylib、`PlayState`
-- **備考 / TODO**: 実データロード、難易度別レイアウト、パララックス実装
-
----
-
-## 7. 今後の横断的タスク
-- EventBus 実装と UI/Audio 連動により、Health/Attack 等のイベント配線を完了させる
-- Player 攻撃・ダメージステート、およびヒットボックス導入で戦闘サイクルを確立
-- Factory/Item 実装により成長システムを実体化し、スコア/EXP 表示と連携
-- ステージ演出やアート、サウンド追加による臨場感向上
-- 各クラスの単体テストフック（依存注入・モック）を整備し、リグレッション防止

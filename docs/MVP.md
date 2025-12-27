@@ -12,25 +12,17 @@ C++ × 2D 横スクロール × ローグライト × ミニプロダクショ�
 
 #2 🧭 ゲームデザイン（GDD）
 プレイヤーアクション
-
 必須：
-
 移動
-
 ジャンプ
-
 攻撃
-
 武器：
 身体
 
 敵（エネミー）
-
 種類：1種のキノコ
-
 敵タイプ：
 近接タイプのみ
-
 ローグライト要素
 敵がランダム出現
 
@@ -86,36 +78,14 @@ PlayerDamageState
 
 EnemyChaseState
 
-## 3.4 AI（意思決定）
+## 3.4 敵行動ロジック
 
-GoF：Strategyパターン
+GoF：Stateパターン（EnemyChaseState に直接実装）
 
-AIStrategy
-
-SimpleChaseAI
+- 現状はレーン上を左右にパトロールするだけのシンプル挙動。
+- 追跡 AI を導入する場合は Strategy パターンを再検討し、`AIStrategy` を復活させる。
 
 ## 3.5 Factory（生成）
 
 GoF：Factory Method / Abstract Factory
-
-CharacterFactory（Player/Enemy生成）
-
-## 3.7 UI
-
-GoF：Observer パターン（EventBus）
-
-UIHealthBar
-
-UIExpBar
-
-UILevelText
-
-UIPopup
-
-UIResultScreen
-
-## 3.8 Audio
-
-AudioManager
-（EventBusからサウンドをトリガー）
-
+EnemySpawner

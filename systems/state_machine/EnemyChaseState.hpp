@@ -4,7 +4,7 @@
 
 namespace ks {
 
-// 敵がターゲットへ向かって追跡・攻撃する状態
+// 敵がレーン上を左右へパトロールするだけの状態
 class EnemyChaseState : public IState {
 public:
     // 初期化としてアニメーションをリセットする

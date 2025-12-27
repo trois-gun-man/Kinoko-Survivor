@@ -1,21 +1,17 @@
 #pragma once
 
-#include <memory>
 #include <raylib.h>
 
 #include "Entity.hpp"
 #include "../components/HealthComponent.hpp"
 #include "../components/PositionComponent.hpp"
 #include "../components/RenderComponent.hpp"
-#include "../systems/ai/AIStrategy.hpp"
 #include "../systems/state_machine/StateMachine.hpp"
 #include "../systems/state_machine/EnemyChaseState.hpp"
 
 namespace ks {
 
-class Player;
-
-// AI 戦略とステートマシンで行動する敵エンティティ
+// ステートマシンで行動するシンプルな敵エンティティ
 class Enemy : public Entity {
 public:
     // 共通スプライトを読み込む
@@ -40,16 +36,6 @@ public:
     void translate(float dx, float dy);
     // 現在位置を返す
     [[nodiscard]] Vector2 getPosition() const;
-    // 追跡対象プレイヤーを設定する
-    void setTarget(const Player* player);
-    // ターゲットの有無を調べる
-    [[nodiscard]] bool hasTarget() const;
-    // ターゲット位置（いない場合は自身）を返す
-    [[nodiscard]] Vector2 getTargetPosition() const;
-    // 現在の移動速度を返す
-    [[nodiscard]] float getSpeed() const;
-    // 任意の AI 戦略をセットする
-    void setStrategy(std::unique_ptr<AIStrategy> strategy);
     // 当たり半径を取得
     [[nodiscard]] float radius() const;
     // 接地高さを設定
@@ -64,8 +50,6 @@ private:
     void clampToBounds();
     // 向きや移動フラグを更新する
     void updateAnimationState(float prevX);
-    // スプライトで描画する
-    void drawSprite() const;
     // フォールバック描画を行う
     void drawFallback() const;
     // ムーブ後のポインタ参照を補正する
@@ -77,14 +61,10 @@ private:
     RenderComponent m_render;
     // 体力管理
     HealthComponent m_health;
-    // 現在の AI 戦略
-    std::unique_ptr<AIStrategy> m_strategy;
     // 行動ステートマシン
     StateMachine m_stateMachine;
     // 追跡状態ロジック
     EnemyChaseState m_chaseState;
-    // 追跡するプレイヤー
-    const Player* m_target = nullptr;
     // 初期値をまとめた定数群
     static constexpr int kDefaultMaxHealth = 25;
     static constexpr float kDefaultSpeed = 140.0f;
@@ -104,6 +84,8 @@ private:
     float m_minX = kDefaultMinX;
     // 行動範囲の右端
     float m_maxX = kDefaultMaxX;
+    // パトロール方向（+1: 右へ / -1: 左へ）
+    float m_patrolDirection = 1.0f;
     // アニメーション用経過時間
     float m_animTimer = 0.0f;
     // 移動しているか
