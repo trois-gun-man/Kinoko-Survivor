@@ -9,8 +9,6 @@ public:
     void setMax(int value);
     // 減算の結果が負にならないようにしながらダメージを適用する
     void applyDamage(int value);
-    // 現在値が最大値を超えないようにしながら回復させる
-    void heal(int value);
     // 現在値がゼロ以下かどうかを返し、死亡扱いか判定する
     [[nodiscard]] bool isDead() const;
     // 現在の体力値を取得する

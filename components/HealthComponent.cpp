@@ -15,11 +15,6 @@ void HealthComponent::applyDamage(int value) {
     m_current = std::max(0, m_current - std::max(0, value));
 }
 
-// 現在値が上限を超えない範囲で回復させる
-void HealthComponent::heal(int value) {
-    m_current = std::min(m_max, m_current + std::max(0, value));
-}
-
 // 残り体力がゼロ以下なら死亡扱いとする
 bool HealthComponent::isDead() const {
     return m_current <= 0;
