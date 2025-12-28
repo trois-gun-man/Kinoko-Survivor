@@ -48,10 +48,7 @@ PlayState::PlayState() {
     m_player.setMovementBounds(m_laneLeft, m_laneRight);
     m_player.setPosition((m_laneLeft + m_laneRight) * kLaneCenterFactor);
 
-    m_spawner.setPlayer(&m_player);
     m_spawner.setLane(m_groundY, m_laneLeft, m_laneRight);
-    m_spawner.configureWave(0);
-    m_spawner.spawnWave(m_enemies);
 }
 
 PlayState::~PlayState() {
@@ -104,7 +101,6 @@ void PlayState::loadBackground() {
 
 void PlayState::updateEnemies(float dt) {
     for (Enemy& enemy : m_enemies) {
-        enemy.setTarget(&m_player);
         enemy.update(dt);
 
         if (enemy.consumeAttackEvent()) {
