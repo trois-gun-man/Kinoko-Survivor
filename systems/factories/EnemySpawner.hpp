@@ -17,7 +17,7 @@ private:
     float m_laneLeft = 0.0f;
     float m_laneRight = 800.0f;
     float m_timer = 0.0f;
-    float m_interval = 3.0f;
+    float m_interval = 5.0f;
     bool m_spawned = false;
 };
 

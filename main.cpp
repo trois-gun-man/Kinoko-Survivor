@@ -14,8 +14,8 @@ int main() {
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-        manager.Update();
         manager.Draw();
+        manager.Update();
         EndDrawing();
     }
 

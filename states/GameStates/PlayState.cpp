@@ -1,8 +1,10 @@
 #include "PlayState.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 #include "ResultState.hpp"
+#include "BossState.hpp"
 
 namespace ks {
 
@@ -48,7 +50,7 @@ PlayState::PlayState() {
     m_player.setMovementBounds(m_laneLeft, m_laneRight);
     m_player.setPosition((m_laneLeft + m_laneRight) * kLaneCenterFactor);
 
-    m_spawner.setLane(m_groundY, m_laneLeft, m_laneRight);
+    m_spawner.setLane(adjusted_player_yPosition, m_laneLeft, m_laneRight);
 }
 
 PlayState::~PlayState() {
@@ -73,6 +75,10 @@ void PlayState::Update(StateManager& manager) {
     updateEnemies(dt);
     m_spawner.update(dt, m_enemies);
 
+    if (m_killedEnemies >= 1 && !m_playerDefeated) {
+        manager.ChangeState<BossState>();
+    }
+
     if (m_player.isDead() && !m_playerDefeated) {
         m_playerDefeated = true;
         manager.ChangeState<ResultState>(m_survivalTime, [](StateManager& restartManager) {
@@ -86,10 +92,11 @@ void PlayState::Draw() {
     drawGround();
 
     m_player.render();
+   // std::cout << "Draw Player!" << std::endl;
     for (Enemy& enemy : m_enemies) {
         enemy.render();
     }
-
+    m_player.draw();
     drawUI();
 }
 
@@ -103,13 +110,46 @@ void PlayState::updateEnemies(float dt) {
     for (Enemy& enemy : m_enemies) {
         enemy.update(dt);
 
+        // 敵がプレイヤーを攻撃していたらダメージを与える
         if (enemy.consumeAttackEvent()) {
             m_player.applyDamage(m_enemyDamage);
         }
+
+        // プレイヤーが敵攻撃していたらダメージを与える
+        if (m_player.isAttacking() && !enemy.isDead() && !m_player.getAttackHit()) {
+            if (CheckCollisionRecs(m_player.getAttackHitBox(), enemy.getHitBox())) {
+                enemy.applyDamage(10); // プレイヤーの攻撃力を10に設定
+                m_player.setAttackHit(true);
+            }
+        }
+
+        DrawRectangleLinesEx(
+            m_player.getAttackHitBox(), 2.0f, BLUE
+        );
+        DrawRectangleLinesEx(
+            enemy.getHitBox(), 2.0f, BLUE
+        );
     }
+    
+    int before = m_enemies.size();
+
+    m_enemies.erase(
+        std::remove_if(
+            m_enemies.begin(),
+            m_enemies.end(),
+            [](const Enemy& e) { return e.isDead(); }
+        ),
+        m_enemies.end()
+    );
+
+    int after = m_enemies.size();
+    m_killedEnemies += (before - after);
+
 }
 
+
 void PlayState::drawBackground() const {
+    //std::cout << "Clear Background!" << std::endl;
     ClearBackground(kClearColor);
 
     if (m_background.id == 0) {
@@ -123,16 +163,19 @@ void PlayState::drawBackground() const {
     const float scale = std::max(scaleX, scaleY);
     const Rectangle src{0.0f, 0.0f, static_cast<float>(m_background.width), static_cast<float>(m_background.height)};
     const Rectangle dest{0.0f, 0.0f, m_background.width * scale, m_background.height * scale};
-    DrawTexturePro(m_background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
+    //std::cout << "Draw Background!" << std::endl;
+  //  DrawTexturePro(m_background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 }
 
 void PlayState::drawGround() const {
+    //std::cout << "Draw Ground!" << std::endl;
     const Rectangle soil{0.0f, m_groundY, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()) - m_groundY};
-    DrawRectangleRec(soil, kSoilColor);
+ //   DrawRectangleRec(soil, kSoilColor);
     DrawRectangle(0, static_cast<int>(m_groundY) - kGrassOffset, GetScreenWidth(), kGrassThickness, kGrassColor);
 }
 
 void PlayState::drawUI() const {
+    //std::cout << "Draw UI!" << std::endl;
     const int padding = kUiPadding;
     DrawText(kMoveInstruction, padding, kMoveTextY, kMoveTextSize, kMoveTextColor);
     DrawText(kAttackHint, padding, kHintTextY, kHintTextSize, kHintTextColor);

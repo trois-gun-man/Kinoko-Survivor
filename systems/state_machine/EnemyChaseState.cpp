@@ -34,8 +34,8 @@ void EnemyChaseState::update(Entity& owner, float dt) {
     const float velocity = enemy->m_patrolDirection * enemy->m_speed;
     enemy->translate(velocity * dt, 0.0f);
 
-    const float leftLimit = enemy->m_minX + enemy->m_radius;
-    const float rightLimit = enemy->m_maxX - enemy->m_radius;
+    const float leftLimit = enemy->m_minX + enemy->m_radius.x;
+    const float rightLimit = enemy->m_maxX - enemy->m_radius.x;
     const float currentX = enemy->m_position.x();
 
     if (currentX <= leftLimit) {

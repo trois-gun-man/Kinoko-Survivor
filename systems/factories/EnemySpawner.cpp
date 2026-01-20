@@ -10,8 +10,8 @@ namespace ks {
 
 namespace {
 constexpr float kSpawnOffset = 60.0f;
-constexpr float kLaneBuffer = 200.0f;
-constexpr int kEnemySpawnFlgBit = 0x0; // 0x1: エネミーを出す、0x0: 無効化
+constexpr float kLaneBuffer = 30.0f;
+constexpr int kEnemySpawnFlgBit = 0x1; // 0x1: エネミーを出す、0x0: 無効化
 } // namespace
 
 void EnemySpawner::setLane(float groundY, float minX, float maxX) {
@@ -32,7 +32,7 @@ void EnemySpawner::update(float dt, std::vector<Enemy>& outEnemies) {
 
     m_timer = 0.0f;
     spawn(outEnemies);
-    m_spawned = true;
+    m_spawned = false;
 }
 
 void EnemySpawner::spawn(std::vector<Enemy>& outEnemies) {
@@ -41,7 +41,7 @@ void EnemySpawner::spawn(std::vector<Enemy>& outEnemies) {
     }
     Enemy enemy;
     enemy.setGround(m_groundY);
-    enemy.setMovementBounds(m_laneLeft - kLaneBuffer, m_laneRight + kLaneBuffer);
+    enemy.setMovementBounds(m_laneLeft - kLaneBuffer, m_laneRight);
 
     if (GetRandomValue(0, 1) == 0) {
         enemy.setPosition(m_laneLeft - kSpawnOffset, m_groundY);

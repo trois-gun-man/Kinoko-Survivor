@@ -24,8 +24,8 @@ private:
     static constexpr const char* enemySpritePath = "assets/enemy_sprite.png";
     static constexpr const char* backgroundPath = "assets/play_background.png";
     static constexpr float kDefaultGroundY = 360.0f;
-    static constexpr float kDefaultLaneLeft = 80.0f;
-    static constexpr float kDefaultLaneRight = 720.0f;
+    static constexpr float kDefaultLaneLeft = 0.0f;
+    static constexpr float kDefaultLaneRight = 800.0f;
     static constexpr int kDefaultEnemyDamage = 8;
 
     Player m_player;
@@ -44,6 +44,8 @@ private:
     void drawBackground() const;
     void drawGround() const;
     void drawUI() const;
+     
+    int m_killedEnemies = 0;
 };
 
 } // namespace ks

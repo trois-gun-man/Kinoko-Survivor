@@ -31,7 +31,7 @@ public:
     }
 
     void Update(StateManager& manager) override {
-        titleAnimTime += GetFrameTime() * titleAnimationSpeed;
+      //  titleAnimTime += GetFrameTime() * titleAnimationSpeed;
         HandleInput(manager);
     }
 
@@ -48,12 +48,12 @@ private:
     int selectedIndex = 0;
     static constexpr const char* backgroundPath = "assets/start_background-v2.png";
     static constexpr const char* titlePath = "assets/start_background-v2-title.png";
-    static constexpr float titleAnimationSpeed = 0.8f;
+   // static constexpr float titleAnimationSpeed = 0.8f;
     static constexpr float titleYOffsetRange = 20.0f;
     static constexpr float titleMaxWidthRatio = 0.505f;
     Texture2D background{};
     Texture2D titleTexture{};
-    float titleAnimTime = 0.0f;
+  //  float titleAnimTime = 0.0f;
 
     void HandleInput(StateManager& manager) {
         if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
@@ -114,30 +114,31 @@ private:
 
             const Rectangle src{0.0f, 0.0f, static_cast<float>(background.width), static_cast<float>(background.height)};
             const Rectangle dest{offsetX, offsetY, destWidth, destHeight};
-            DrawTexturePro(background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
+        //    DrawTexturePro(background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
         } else {
-            DrawPixelArtPlaceholder();
+        //    DrawPixelArtPlaceholder();
         }
     }
 
     void DrawTitle() const {
         const float screenWidth = static_cast<float>(GetScreenWidth());
         const float baseY = 5.0f;
-        const float offset = (std::sinf(titleAnimTime) * 0.5f + 0.5f) * titleYOffsetRange;
+      //  const float offset = (std::sinf(titleAnimTime) * 0.5f + 0.5f) * titleYOffsetRange;
+        const float offset = (0.5f) * titleYOffsetRange;
 
-        if (titleTexture.id != 0) {
-            const Rectangle src{0.0f, 0.0f, static_cast<float>(titleTexture.width), static_cast<float>(titleTexture.height)};
-            const float scale = (screenWidth * titleMaxWidthRatio) / static_cast<float>(titleTexture.width);
-            const Vector2 size{titleTexture.width * scale, titleTexture.height * scale};
-            const float x = (screenWidth - size.x) * 0.5f;
-            DrawTexturePro(titleTexture, src, Rectangle{x, baseY + offset, size.x, size.y}, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
-        } else {
+//        if (titleTexture.id != 0) {
+//            const Rectangle src{0.0f, 0.0f, static_cast<float>(titleTexture.width), static_cast<float>(titleTexture.height)};
+//            const float scale = (screenWidth * titleMaxWidthRatio) / static_cast<float>(titleTexture.width);
+//            const Vector2 size{titleTexture.width * scale, titleTexture.height * scale};
+//            const float x = (screenWidth - size.x) * 0.5f;
+//            DrawTexturePro(titleTexture, src, Rectangle{x, baseY + offset, size.x, size.y}, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
+//        } else {
             const char* fallbackTitle = "KINOKO SURVIVOR";
             const int titleFontSize = 48;
             const int titleWidth = MeasureText(fallbackTitle, titleFontSize);
             const int titleX = static_cast<int>((screenWidth - titleWidth) * 0.5f);
             DrawText(fallbackTitle, titleX, static_cast<int>(baseY + offset), titleFontSize, RAYWHITE);
-        }
+//        }
     }
 
     void DrawMenu() const {

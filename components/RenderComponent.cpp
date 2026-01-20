@@ -9,7 +9,7 @@ void RenderComponent::setFallback(Color color) {
 }
 
 // 円形描画
-void RenderComponent::draw(const Vector2& position, float radius, Color tint) const {
+void RenderComponent::draw(const Vector2& position, Vector2 size, Color tint) const {
     const Color color = (tint.a > 0) ? tint : m_fallbackColor;
     DrawRectangleV(position, size, color);
 }

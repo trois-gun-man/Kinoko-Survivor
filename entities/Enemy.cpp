@@ -97,6 +97,9 @@ void Enemy::update(float dt) {
 
 // スプライトが使えれば優先し、無ければフォールバックを描く
 void Enemy::render() {
+   // if (isDead()) {
+   //     return;
+   // }
     drawFallback();
 
 }
@@ -122,7 +125,7 @@ Vector2 Enemy::getPosition() const {
 }
 
 // 当たり半径を返す
-float Enemy::radius() const {
+Vector2 Enemy::radius() const {
     return m_radius;
 }
 
@@ -150,7 +153,8 @@ bool Enemy::consumeAttackEvent() {
 
 // X 座標を移動範囲に収める
 void Enemy::clampToBounds() {
-    const float clampedX = std::max(m_minX + m_radius, std::min(m_maxX - m_radius, m_position.x()));
+    const Vector2 pos = m_position.toVector();
+    const float clampedX = std::max(m_minX, std::min(m_maxX - m_radius.x, pos.x));
     m_position.set(clampedX, m_groundY);
 }
 
@@ -165,13 +169,33 @@ void Enemy::updateAnimationState(float prevX) {
 
 // テクスチャが無いときの簡易描画
 void Enemy::drawFallback() const {
-//    m_render.draw(m_position.toVector(), m_radius, Color{200, 80, 80, 255});
+    Vector2 drawPos = m_position.toVector();
+    drawPos.y += 18.0f; // スプライト位置合わせ用補正
+    m_render.draw(drawPos, m_radius, Color{200, 80, 80, 255});
 }
 
 // ステートマシンの所有者と現在状態を再紐付けする
 void Enemy::resetStateMachine() {
     m_stateMachine.setOwner(this);
     m_stateMachine.overrideState(&m_chaseState, true);
+}
+
+Rectangle Enemy::getHitBox() const {
+    Vector2 pos = m_position.toVector();
+    return Rectangle{
+        pos.x,
+        pos.y + m_radius.y,
+        m_radius.x,
+        m_radius.y
+    };
+}
+
+void Enemy::applyDamage(int damage) {
+    m_health.applyDamage(damage);
+}
+
+bool Enemy::isDead() const {
+    return m_health.isDead();
 }
 
 } // namespace ks

@@ -37,13 +37,16 @@ public:
     // 現在位置を返す
     [[nodiscard]] Vector2 getPosition() const;
     // 当たり半径を取得
-    [[nodiscard]] float radius() const;
+    [[nodiscard]] Vector2 radius() const;
     // 接地高さを設定
     void setGround(float y);
     // 横方向の行動範囲を設定
     void setMovementBounds(float minX, float maxX);
     // 1 フレーム限りの攻撃イベントを消費する
     bool consumeAttackEvent();
+    Rectangle getHitBox() const;
+    void applyDamage(int damage);
+    bool isDead() const;
 
 private:
     // 移動範囲内に X を収める
@@ -68,7 +71,7 @@ private:
     // 初期値をまとめた定数群
     static constexpr int kDefaultMaxHealth = 25;
     static constexpr float kDefaultSpeed = 140.0f;
-    static constexpr float kDefaultRadius = 14.0f;
+    static constexpr Vector2 kDefaultRadius = {25.0f, 18.0f};
     static constexpr float kDefaultGroundY = 360.0f;
     static constexpr float kDefaultMinX = 0.0f;
     static constexpr float kDefaultMaxX = 800.0f;
@@ -77,7 +80,7 @@ private:
     // 基本移動速度
     float m_speed = kDefaultSpeed;
     // 当たり半径
-    float m_radius = kDefaultRadius;
+    Vector2 m_radius = kDefaultRadius;
     // 足場高さ
     float m_groundY = kDefaultGroundY;
     // 行動範囲の左端
