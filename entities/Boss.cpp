@@ -1,5 +1,4 @@
 #include "Boss.hpp"
-#include <iostream>
 namespace ks {
 
 Boss::Boss() {
@@ -81,10 +80,6 @@ Rectangle Boss::getHitBox() const {
     if (height < 0.0f) {
         height = 0.0f;
     }
-    std::cout << "Boss HitBox: x=" << topLeft.x + kHitboxInset.x * 0.5f
-              << " y=" << topLeft.y + kHitboxInset.y * 0.5f
-              << " w=" << width
-              << " h=" << height << std::endl;
     return Rectangle{
         topLeft.x+ kHitboxInset.x,
         topLeft.y,
