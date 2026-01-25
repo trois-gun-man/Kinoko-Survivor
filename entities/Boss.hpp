@@ -46,7 +46,7 @@ private:
     static constexpr float kSpriteScale = 4.0f;
     static constexpr Vector2 kRadius = {60.0f * kSpriteScale, 48.0f * kSpriteScale}; // 大きめ
     static constexpr Vector2 kSpriteOffset{-10.0f, -80.0f};
-    static constexpr Vector2 kHitboxInset{60.0f, 50.0f};
+    static constexpr Vector2 kHitboxInset{60.0f, 20.0f};
     static constexpr Color kBossColor{120, 40, 180, 255};
     static constexpr const char* kSpritePath = "assets/Boss_sprite.png";
     static constexpr int kSpriteColumns = 2;
