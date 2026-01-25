@@ -6,8 +6,8 @@ BossState::BossState() {
 	// コンストラクタ内で必要な初期化を行う
 	float adjusted_player_yPosition = m_groundY - 42.0f;
 	m_player.setGround(adjusted_player_yPosition);
-	float groundY = 310.0f;
-	float bossX = GetScreenWidth() - 160.0f;
+	float groundY = 225.0f;
+	float bossX = GetScreenWidth() - 250.0f;
 
 	m_boss.setGround(groundY);
 	m_boss.setPosition(bossX, groundY);
@@ -19,8 +19,10 @@ void BossState::Update(StateManager&) {
 
 	if (CheckCollisionRecs(
 		m_player.getAttackHitBox(),
-		m_boss.getHitBox())) {
+		m_boss.getHitBox()
+	    ) && m_player.isAttacking() && !m_player.getAttackHit()) {
 			m_boss.applyDamage(10);
+			m_player.setAttackHit(true);
 		}
 	DrawRectangleLinesEx(
 		m_boss.getHitBox(), 2.0f, BLUE

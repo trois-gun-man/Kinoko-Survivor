@@ -31,7 +31,7 @@ private:
 
     // ボス用パラメータ
     static constexpr int kMaxHealth = 30;
-    static constexpr Vector2 kRadius = {60.0f, 48.0f}; // 大きめ
+    static constexpr Vector2 kRadius = {180.0f, 150.0f}; // 大きめ
     static constexpr Color kBossColor{120, 40, 180, 255};
 
     Vector2 m_radius = kRadius;

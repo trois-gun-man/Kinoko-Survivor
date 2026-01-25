@@ -36,7 +36,8 @@ Rectangle Boss::getHitBox() const {
     Vector2 pos = m_position.toVector();
     return Rectangle{
         pos.x,
-        pos.y + m_radius.y,
+      //  pos.y + m_radius.y,
+        pos.y + 18.0f, // Enemyと同じ補正
         m_radius.x,
         m_radius.y
     };
