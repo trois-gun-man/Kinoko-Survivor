@@ -1,0 +1,26 @@
+# Build artifacts
+*.exe
+*.dll
+*.lib
+*.a
+*.obj
+*.o
+*.pdb
+*.ilk
+
+# IDE / tooling
+.vscode/
+.vs/
+*.user
+*.suo
+
+# Logs / caches
+*.log
+*.cache
+
+# Raylib generated data
+*.png.orig
+
+# Misc temporary files
+.DS_Store
+Thumbs.db
