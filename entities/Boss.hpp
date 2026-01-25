@@ -22,6 +22,12 @@ public:
     void render() override;
     void setJumping(bool jumping);
 
+    [[nodiscard]] Vector2 getPosition() const;
+    [[nodiscard]] Vector2 radius() const;
+    [[nodiscard]] int health() const;
+    [[nodiscard]] int maxHealth() const;
+    bool consumeShockwaveEvent();
+
     void setPosition(float x, float y);
     void setGround(float y);
 
@@ -39,17 +45,28 @@ private:
     static constexpr int kMaxHealth = 30;
     static constexpr float kSpriteScale = 4.0f;
     static constexpr Vector2 kRadius = {60.0f * kSpriteScale, 48.0f * kSpriteScale}; // 大きめ
+    static constexpr Vector2 kSpriteOffset{-10.0f, -80.0f};
+    static constexpr Vector2 kHitboxInset{60.0f, 50.0f};
     static constexpr Color kBossColor{120, 40, 180, 255};
     static constexpr const char* kSpritePath = "assets/Boss_sprite.png";
     static constexpr int kSpriteColumns = 2;
     static constexpr int kSpriteRows = 2;
-    static constexpr float kFrameDuration = 0.18f;
+    static constexpr float kFrameDuration = 1.8f;
+    static constexpr float kJumpInterval = 5.0f;
+    static constexpr float kJumpGravity = 2600.0f;
+    static constexpr float kJumpVelocity = -900.0f;
+    static constexpr float kLandingFrameDuration = 0.35f;
 
     Vector2 m_radius = kRadius;
     float m_groundY = 360.0f;
     float m_animTimer = 0.0f;
     int m_currentFrame = 0;
     bool m_isJumping = false;
+    float m_jumpTimer = kJumpInterval;
+    float m_verticalVelocity = 0.0f;
+    bool m_isAirborne = false;
+    bool m_pendingShockwave = false;
+    float m_landingFrameTimer = 0.0f;
 
     static inline Texture2D s_spriteSheet{};
     static inline bool s_spriteLoaded = false;
@@ -58,6 +75,7 @@ private:
     static void AcquireSpriteSheet();
     static void ReleaseSpriteSheet();
     void updateAnimation(float dt);
+    void updateJump(float dt);
     void drawSprite(const Vector2& drawPos) const;
 };
 

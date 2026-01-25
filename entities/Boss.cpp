@@ -13,7 +13,19 @@ Boss::~Boss() {
 }
 
 void Boss::update(float dt) {
+    if (isDead()) {
+        return;
+    }
+
+    updateJump(dt);
     updateAnimation(dt);
+
+    if (m_landingFrameTimer > 0.0f) {
+        m_landingFrameTimer -= dt;
+        if (m_landingFrameTimer < 0.0f) {
+            m_landingFrameTimer = 0.0f;
+        }
+    }
 }
 
 void Boss::render() {
@@ -22,8 +34,8 @@ void Boss::render() {
     }
 
     Vector2 drawPos = m_position.toVector();
-    drawPos.y -= 80.0f; // Enemyと同じ補正
-    drawPos.x -= 10.0f; // 中心合わせ
+    drawPos.x += kSpriteOffset.x;
+    drawPos.y += kSpriteOffset.y;
     if (s_spriteLoaded) {
         drawSprite(drawPos);
         return;
@@ -39,21 +51,42 @@ void Boss::setJumping(bool jumping) {
 void Boss::setPosition(float x, float y) {
     m_position.set(x, y);
     m_groundY = y;
+    m_isAirborne = false;
+    m_verticalVelocity = 0.0f;
+    m_jumpTimer = kJumpInterval;
+    m_pendingShockwave = false;
+    m_landingFrameTimer = 0.0f;
 }
 
 void Boss::setGround(float y) {
     m_groundY = y;
     m_position.set(m_position.x(), m_groundY);
+    m_isAirborne = false;
+    m_verticalVelocity = 0.0f;
+    m_jumpTimer = kJumpInterval;
+    m_pendingShockwave = false;
+    m_landingFrameTimer = 0.0f;
 }
 
 Rectangle Boss::getHitBox() const {
-    Vector2 pos = m_position.toVector();
+    Vector2 topLeft = m_position.toVector();
+    topLeft.x += kSpriteOffset.x;
+    topLeft.y += kSpriteOffset.y;
+
+    float width = m_radius.x - kHitboxInset.x;
+    float height = m_radius.y - kHitboxInset.y;
+    if (width < 0.0f) {
+        width = 0.0f;
+    }
+    if (height < 0.0f) {
+        height = 0.0f;
+    }
+
     return Rectangle{
-        pos.x,
-      //  pos.y + m_radius.y,
-        pos.y + 18.0f, // Enemyと同じ補正
-        m_radius.x,
-        m_radius.y
+        topLeft.x + kHitboxInset.x * 0.5f,
+        topLeft.y + kHitboxInset.y * 0.5f,
+        width,
+        height
     };
 }
 
@@ -63,6 +96,30 @@ void Boss::applyDamage(int damage) {
 
 bool Boss::isDead() const {
     return m_health.isDead();
+}
+
+Vector2 Boss::getPosition() const {
+    return m_position.toVector();
+}
+
+Vector2 Boss::radius() const {
+    return m_radius;
+}
+
+int Boss::health() const {
+    return m_health.current();
+}
+
+int Boss::maxHealth() const {
+    return m_health.max();
+}
+
+bool Boss::consumeShockwaveEvent() {
+    if (m_pendingShockwave) {
+        m_pendingShockwave = false;
+        return true;
+    }
+    return false;
 }
 
 void Boss::AcquireSpriteSheet() {
@@ -101,6 +158,33 @@ void Boss::updateAnimation(float dt) {
     }
 }
 
+void Boss::updateJump(float dt) {
+    if (m_isAirborne) {
+        m_verticalVelocity += kJumpGravity * dt;
+        m_position.translate(0.0f, m_verticalVelocity * dt);
+
+        if (m_position.y() >= m_groundY) {
+            m_position.set(m_position.x(), m_groundY);
+            m_verticalVelocity = 0.0f;
+            m_isAirborne = false;
+            m_isJumping = false;
+            m_jumpTimer = kJumpInterval;
+            m_pendingShockwave = true;
+            m_landingFrameTimer = kLandingFrameDuration;
+        }
+        return;
+    }
+
+    m_jumpTimer -= dt;
+    if (m_jumpTimer <= 0.0f) {
+        m_isAirborne = true;
+        m_isJumping = true;
+        m_verticalVelocity = kJumpVelocity;
+        m_jumpTimer = 0.0f;
+        m_landingFrameTimer = 0.0f;
+    }
+}
+
 void Boss::drawSprite(const Vector2& drawPos) const {
     if (!s_spriteLoaded) {
         return;
@@ -108,8 +192,16 @@ void Boss::drawSprite(const Vector2& drawPos) const {
 
     const float frameWidth = static_cast<float>(s_spriteSheet.width) / static_cast<float>(kSpriteColumns);
     const float frameHeight = static_cast<float>(s_spriteSheet.height) / static_cast<float>(kSpriteRows);
-    const int column = m_currentFrame % kSpriteColumns;
-    const int row = m_isJumping ? 1 : 0;
+    int column = m_currentFrame % kSpriteColumns;
+    int row = 0;
+
+    if (m_landingFrameTimer > 0.0f) {
+        row = 1;
+        column = 1;
+    } else if (m_isJumping) {
+        row = 1;
+        column = 0;
+    }
 
     const Rectangle src{
         frameWidth * static_cast<float>(column),
