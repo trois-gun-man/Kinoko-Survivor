@@ -2,6 +2,28 @@
 
 namespace ks {
 
+// テクスチャを保持していれば破棄する
+RenderComponent::~RenderComponent() {
+    if (m_hasSprite) {
+        UnloadTexture(m_sprite);
+    }
+}
+
+// 指定テクスチャを読み込み、失敗した場合はフォールバックに切り替える
+void RenderComponent::loadSprite(const char* path) {
+    if (!path || !FileExists(path)) {
+        m_hasSprite = false;
+        return;
+    }
+
+    if (m_hasSprite) {
+        UnloadTexture(m_sprite);
+        m_hasSprite = false;
+    }
+
+    m_sprite = LoadTexture(path);
+    m_hasSprite = m_sprite.id != 0;
+}
 
 // フォールバック時の塗りつぶし色を更新する
 void RenderComponent::setFallback(Color color) {

@@ -42,7 +42,7 @@ private:
     HealthComponent m_health;
 
     // ボス用パラメータ
-    static constexpr int kMaxHealth = 30;
+    static constexpr int kMaxHealth = 100;
     static constexpr float kSpriteScale = 4.0f;
     static constexpr Vector2 kRadius = {60.0f * kSpriteScale, 48.0f * kSpriteScale}; // 大きめ
     static constexpr Vector2 kSpriteOffset{-10.0f, -80.0f};
@@ -52,7 +52,7 @@ private:
     static constexpr int kSpriteColumns = 2;
     static constexpr int kSpriteRows = 2;
     static constexpr float kFrameDuration = 1.8f;
-    static constexpr float kJumpInterval = 5.0f;
+    static constexpr float kJumpInterval = 3.0f;
     static constexpr float kJumpGravity = 2600.0f;
     static constexpr float kJumpVelocity = -900.0f;
     static constexpr float kLandingFrameDuration = 0.35f;

@@ -21,6 +21,7 @@ public:
     };
 
     Player();
+    ~Player() override;
 
     // ステートマシンで行動を更新する
     void update(float dt) override;
@@ -61,13 +62,25 @@ public:
     void setAttackHit(bool hit);
     bool getAttackHit() const;
 
-
+    int getAttackPower() const ;
 private:
+    enum class AnimationState {
+		Idle,
+		Move,
+		Jump,
+		Attack
+	};
+
     Facing m_facing = Facing::Right;
     Facing m_attackFacing = Facing::Right;
-
+    int m_attackPower = 10;
     // 現在位置を移動範囲へ収める
     void clampToBounds();
+    void loadSpriteSheet();
+    void unloadSpriteSheet();
+    void updateAnimation(float dt);
+    void drawSprite() const;
+    AnimationState calculateAnimationState() const;
     // 位置や移動量
     PositionComponent m_position;
     // スプライト描画情報
@@ -95,11 +108,19 @@ private:
     float m_minX = kDefaultMinX;
     float m_maxX = kDefaultMaxX;
     float velocityY = 0.0f;
+    float m_moveInput = 0.0f;
 
     bool m_isAttacking = false;
     float m_attackTimer = 0.0f;
     bool first_attack = true;
     bool m_attackHit = false;
+    Texture2D m_spriteSheet{};
+    bool m_hasSpriteSheet = false;
+    int m_frameWidth = 0;
+    int m_frameHeight = 0;
+    AnimationState m_animState = AnimationState::Idle;
+    float m_animTimer = 0.0f;
+    int m_currentFrame = 0;
 };
 
 

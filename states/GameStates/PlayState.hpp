@@ -28,7 +28,7 @@ private:
     static constexpr float kDefaultLaneRight = 800.0f;
     static constexpr int kDefaultEnemyDamage = 8;
 
-    Player m_player;
+    std::unique_ptr<Player> m_player;
     std::vector<Enemy> m_enemies;
     Texture2D m_background{};
     EnemySpawner m_spawner;

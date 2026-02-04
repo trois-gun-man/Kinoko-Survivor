@@ -18,7 +18,8 @@ classDiagram
     class Enemy {
         +update(dt)
         +render()
-        +setMovementBounds(minX, maxX)
+        +setStrategy(strategy)
+        +setTarget(player)
     }
     class PositionComponent {
         +set(x, y)
@@ -59,6 +60,8 @@ classDiagram
     Enemy --> RenderComponent
     Enemy --> HealthComponent
     Enemy --> StateMachine
+    Enemy --> AIStrategy
+    Enemy ..> Player : chaseTarget
 
 
     %% -----------------------
@@ -79,17 +82,40 @@ classDiagram
     PlayerAttackState --> Player
     PlayerDamageState --> Player
     EnemyChaseState --> Enemy
+    EnemyChaseState ..> Player : target
+
+
+    %% -----------------------
+    %% Strategy: Enemy AI
+    %% -----------------------
+    class AIStrategy {
+        +decideAction(owner, dt)
+    }
+    class SimpleChaseAI
+    class RangedAI
+
+    AIStrategy <|-- SimpleChaseAI
+    AIStrategy <|-- RangedAI
 
 
     %% -----------------------
     %% Factories & Spawners
     %% -----------------------
-
+    class CharacterFactory {
+        +createPlayer()
+        +createEnemy(typeId)
+    }
     class EnemySpawner {
+        +setPlayer(player)
         +setLane(groundY, minX, maxX)
         +update(dt, enemies)
+        +spawnWave(enemies)
     }
+
+    CharacterFactory --> Player
+    CharacterFactory --> Enemy
     EnemySpawner --> Enemy
+    EnemySpawner ..> Player : targetRef
 
 
     %% -----------------------
@@ -127,5 +153,56 @@ classDiagram
     PlayState --> Enemy
 
 
+    %% -----------------------
+    %% Items: Factory + Strategy
+    %% -----------------------
+    class ItemBase {
+        +apply()
+    }
+    class BuffStrategy {
+        +apply(target)
+    }
+    class AttackBuff
+    class SpeedBuff
+    class HealBuff
+    class ItemFactory {
+        +createRandomItem()
+        +createRandomBuff()
+    }
+    class TreasureChest {
+        +open()
+        +giveReward()
+    }
 
+    ItemFactory --> ItemBase
+    ItemFactory --> BuffStrategy
+    BuffStrategy <|-- AttackBuff
+    BuffStrategy <|-- SpeedBuff
+    BuffStrategy <|-- HealBuff
+    BuffStrategy ..> Entity : apply()
+    TreasureChest --> ItemFactory
+
+
+    %% -----------------------
+    %% UI & Audio via EventBus
+    %% -----------------------
+    class EventBus {
+        +subscribe(eventId, callback)
+        +publish(eventId, payload)
+    }
+    class UIHealthBar
+    class UIExpBar
+    class UILevelText
+    class UIPopup
+    class UIResultScreen
+    class AudioManager {
+        +update(dt)
+    }
+
+    UIHealthBar --> EventBus
+    UIExpBar --> EventBus
+    UILevelText --> EventBus
+    UIPopup --> EventBus
+    UIResultScreen --> EventBus
+    AudioManager --> EventBus
 ```

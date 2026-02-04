@@ -42,15 +42,18 @@ constexpr char kTimeFormat[] = "Time %02d:%02d";
 constexpr char kHpLabel[] = "HP";
 } // namespace
 
-PlayState::PlayState() {
+PlayState::PlayState(): m_player(std::make_unique<Player>()) {
     loadBackground();
     Enemy::AcquireSpriteSheet(enemySpritePath); 
     float adjusted_player_yPosition = m_groundY - 42.0f;
-    m_player.setGround(adjusted_player_yPosition); 
-    m_player.setMovementBounds(m_laneLeft, m_laneRight);
-    m_player.setPosition((m_laneLeft + m_laneRight) * kLaneCenterFactor);
+    m_player->setGround(adjusted_player_yPosition); 
+    m_player->setMovementBounds(m_laneLeft, m_laneRight);
+    m_player->setPosition((m_laneLeft + m_laneRight) * kLaneCenterFactor);
 
+    m_spawner.setPlayer(m_player.get());
     m_spawner.setLane(adjusted_player_yPosition, m_laneLeft, m_laneRight);
+    m_spawner.configureWave(0);
+    m_spawner.spawnWave(m_enemies);
 }
 
 PlayState::~PlayState() {
@@ -67,19 +70,20 @@ void PlayState::Update(StateManager& manager) {
         return;
     }
 
-    if (!m_player.isDead()) {
+    if (!m_player->isDead()) {
         m_survivalTime += dt;
     }
 
-    m_player.update(dt);
+    m_player->update(dt);
     updateEnemies(dt);
     m_spawner.update(dt, m_enemies);
 
-    if (m_killedEnemies >= 1 && !m_playerDefeated) {
-        manager.ChangeState<BossState>();
+    if (m_killedEnemies >= 5 && !m_playerDefeated) {
+        manager.ChangeState<BossState>(std::move(m_player));
+        return; // プレイヤーを移譲したら以降の処理で参照しない
     }
 
-    if (m_player.isDead() && !m_playerDefeated) {
+    if (m_player && m_player->isDead() && !m_playerDefeated) {
         m_playerDefeated = true;
         manager.ChangeState<ResultState>(m_survivalTime, [](StateManager& restartManager) {
             restartManager.ChangeState<PlayState>();
@@ -91,12 +95,12 @@ void PlayState::Draw() {
     drawBackground();
     drawGround();
 
-    m_player.render();
+    m_player->render();
    // std::cout << "Draw Player!" << std::endl;
     for (Enemy& enemy : m_enemies) {
         enemy.render();
     }
-    m_player.draw();
+    m_player->draw();
     drawUI();
 }
 
@@ -108,23 +112,24 @@ void PlayState::loadBackground() {
 
 void PlayState::updateEnemies(float dt) {
     for (Enemy& enemy : m_enemies) {
+        enemy.setTarget(m_player.get());
         enemy.update(dt);
 
         // 敵がプレイヤーを攻撃していたらダメージを与える
         if (enemy.consumeAttackEvent()) {
-            m_player.applyDamage(m_enemyDamage);
+            m_player->applyDamage(m_enemyDamage);
         }
 
         // プレイヤーが敵攻撃していたらダメージを与える
-        if (m_player.isAttacking() && !enemy.isDead() && !m_player.getAttackHit()) {
-            if (CheckCollisionRecs(m_player.getAttackHitBox(), enemy.getHitBox())) {
-                enemy.applyDamage(10); // プレイヤーの攻撃力を10に設定
-                m_player.setAttackHit(true);
+        if (m_player->isAttacking() && !enemy.isDead() && !m_player->getAttackHit()) {
+            if (CheckCollisionRecs(m_player->getAttackHitBox(), enemy.getHitBox())) {
+                enemy.applyDamage(m_player->getAttackPower()); // プレイヤーの攻撃力を10に設定
+                m_player->setAttackHit(true);
             }
         }
 
         DrawRectangleLinesEx(
-            m_player.getAttackHitBox(), 2.0f, BLUE
+            m_player->getAttackHitBox(), 2.0f, BLUE
         );
         DrawRectangleLinesEx(
             enemy.getHitBox(), 2.0f, BLUE
@@ -164,13 +169,13 @@ void PlayState::drawBackground() const {
     const Rectangle src{0.0f, 0.0f, static_cast<float>(m_background.width), static_cast<float>(m_background.height)};
     const Rectangle dest{0.0f, 0.0f, m_background.width * scale, m_background.height * scale};
     //std::cout << "Draw Background!" << std::endl;
-  //  DrawTexturePro(m_background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
+    DrawTexturePro(m_background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 }
 
 void PlayState::drawGround() const {
     //std::cout << "Draw Ground!" << std::endl;
     const Rectangle soil{0.0f, m_groundY, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()) - m_groundY};
- //   DrawRectangleRec(soil, kSoilColor);
+    DrawRectangleRec(soil, kSoilColor);
     DrawRectangle(0, static_cast<int>(m_groundY) - kGrassOffset, GetScreenWidth(), kGrassThickness, kGrassColor);
 }
 
@@ -190,8 +195,8 @@ void PlayState::drawUI() const {
     const float barHeight = kHpBarHeight;
     const float x = static_cast<float>(GetScreenWidth()) - barWidth - padding;
     const float y = padding;
-    const int maxHp = std::max(1, m_player.maxHealth());
-    const float ratio = static_cast<float>(m_player.health()) / static_cast<float>(maxHp);
+    const int maxHp = std::max(1, m_player->maxHealth());
+    const float ratio = static_cast<float>(m_player->health()) / static_cast<float>(maxHp);
 
     DrawRectangleRec(Rectangle{x, y, barWidth, barHeight}, kHpBackgroundColor);
     DrawRectangleRec(Rectangle{x, y, barWidth * ratio, barHeight}, kHpFillColor);

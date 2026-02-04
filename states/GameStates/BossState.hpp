@@ -5,6 +5,7 @@
 #include "../../entities/Boss.hpp"
 #include <raylib.h>
 #include <vector>
+#include <memory>
 
 namespace ks {
 
@@ -16,20 +17,22 @@ constexpr int kGroundOffset = 6;
 
 class BossState : public GameState {
 public:
-    BossState();
-
+    explicit BossState(std::unique_ptr<Player> player);
+    ~BossState() override;
     void Update(StateManager& manager) override;
     void Draw() override;
 	void drawGround() const;
     void drawPlayerHp() const;
-
+	void stopBgm();
 private:
-	Player m_player;
+	std::unique_ptr<Player> m_player;
 	Boss m_boss;
 	float m_groundY = 400.0f;
     float m_stageTimer = 0.0f;
 	float m_stageElapsed = 0.0f;
 	bool m_resultTriggered = false;
+	Texture2D m_background{};
+	float m_contactTimer = 0.0f;
 	struct Shockwave {
 		Rectangle bounds{};
 		float travelled = 0.0f;
@@ -38,10 +41,13 @@ private:
 		bool active = true;
 	};
 
+	void loadBackground();
+	void drawBackground() const;
 	void spawnShockwave();
 	void updateShockwaves(float dt);
 	void drawShockwaves() const;
 	void drawBossHp() const;
+	Music m_bgm{};
 
 	std::vector<Shockwave> m_shockwaves;
 };
