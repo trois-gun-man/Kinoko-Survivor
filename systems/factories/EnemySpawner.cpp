@@ -1,18 +1,29 @@
 #include "EnemySpawner.hpp"
 
-#include <utility>
+#include <algorithm>
+#include <memory>
 
 #include <raylib.h>
 
 #include "../../entities/Enemy.hpp"
+#include "../../entities/Player.hpp"
+#include "../../systems/ai/SimpleChaseAI.hpp"
 
 namespace ks {
 
 namespace {
+constexpr int kBaseWaveCount = 3;
+constexpr float kBaseInterval = 3.0f;
+constexpr float kIntervalStep = 0.2f;
+constexpr float kMinimumInterval = 0.8f;
 constexpr float kSpawnOffset = 60.0f;
-constexpr float kLaneBuffer = 30.0f;
-constexpr int kEnemySpawnFlgBit = 0x1; // 0x1: エネミーを出す、0x0: 無効化
+constexpr float kLaneBuffer = 200.0f;
+constexpr int kEnemySpawnFlgBit = 0x1; // 0x1: エネミースポーンする、0x0: 無効化
 } // namespace
+
+void EnemySpawner::setPlayer(Player* player) {
+    m_player = player;
+}
 
 void EnemySpawner::setLane(float groundY, float minX, float maxX) {
     m_groundY = groundY;
@@ -20,23 +31,39 @@ void EnemySpawner::setLane(float groundY, float minX, float maxX) {
     m_laneRight = maxX;
 }
 
-void EnemySpawner::update(float dt, std::vector<Enemy>& outEnemies) {
-    if (m_spawned) {
-        return;
-    }
+void EnemySpawner::configureWave(int index) {
+    m_waveIndex = std::max(0, index);
+    m_waveCount = kBaseWaveCount + m_waveIndex;
+    m_interval = std::max(kMinimumInterval, kBaseInterval - static_cast<float>(m_waveIndex) * kIntervalStep);
+    m_spawnedThisWave = 0;
+    m_timer = 0.0f;
+}
 
+void EnemySpawner::update(float dt, std::vector<Enemy>& outEnemies) {
     m_timer += dt;
     if (m_timer < m_interval) {
         return;
     }
 
     m_timer = 0.0f;
-    spawn(outEnemies);
-    m_spawned = false;
+    spawnOne(outEnemies);
+    ++m_spawnedThisWave;
+
+    if (m_spawnedThisWave >= m_waveCount) {
+        configureWave(m_waveIndex + 1);
+    }
 }
 
-void EnemySpawner::spawn(std::vector<Enemy>& outEnemies) {
-    if (kEnemySpawnFlgBit == 0x0) {
+void EnemySpawner::spawnWave(std::vector<Enemy>& outEnemies) {
+    for (int i = 0; i < m_waveCount; ++i) {
+        spawnOne(outEnemies);
+    }
+    m_spawnedThisWave = 0;
+    m_timer = 0.0f;
+}
+
+void EnemySpawner::spawnOne(std::vector<Enemy>& outEnemies) {
+    if (kEnemySpawnFlgBit == 0x0 || m_player == nullptr) {
         return;
     }
     Enemy enemy;
@@ -48,6 +75,10 @@ void EnemySpawner::spawn(std::vector<Enemy>& outEnemies) {
     } else {
         enemy.setPosition(m_laneRight + kSpawnOffset, m_groundY);
     }
+    // 現状は近接タイプのみ
+    enemy.setStrategy(std::make_unique<SimpleChaseAI>());
+
+    enemy.setTarget(m_player);
     outEnemies.push_back(std::move(enemy));
 }
 

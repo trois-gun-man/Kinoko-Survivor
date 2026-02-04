@@ -11,6 +11,8 @@ int main() {
 
     StateManager manager;
     manager.ChangeState<StartState>(); 
+    InitAudioDevice();
+    SetMasterVolume(1.0f);   // ← 明示
 
     while (!WindowShouldClose()) {
         BeginDrawing();
@@ -18,7 +20,7 @@ int main() {
         manager.Update();
         EndDrawing();
     }
-
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }

@@ -9,6 +9,7 @@ namespace {
 constexpr float kShockwaveSpeed = 360.0f;
 constexpr float kShockwaveRange = 200.0f;
 constexpr Vector2 kShockwaveSize{120.0f, 120.0f};
+
 constexpr Color kShockwaveColor{255, 220, 120, 220};
 constexpr Color kShockwaveEdgeColor{255, 255, 255, 160};
 constexpr Color kShockwaveDustColor{255, 255, 255, 120};
@@ -35,29 +36,57 @@ constexpr Color kStageTextColor{255, 120, 120, 255};
 constexpr Color kStageShadowColor{0, 0, 0, 160};
 constexpr float kStageTextDuration = 3.5f;
 constexpr float kStageTextFadeOut = 1.0f;
+constexpr Color kSoilColor{78, 52, 46, 255};
+constexpr const char* kBossBgmPath = "assets/boss_battle.wav";
+constexpr const char* kBossBackgroundPath = "assets/Boss_background.png";
+constexpr Color kBossClearColor{12, 18, 34, 255};
+constexpr int kBossContactDamage = 12;
+constexpr float kBossContactCooldown = 0.75f;
+
 } // namespace
 
 namespace ks {
 
-BossState::BossState() {
+BossState::BossState(std::unique_ptr<Player> player) : m_player(std::move(player)) {
+	loadBackground();
 	// コンストラクタ内で必要な初期化を行う
 	float adjusted_player_yPosition = m_groundY - 42.0f;
-	m_player.setGround(adjusted_player_yPosition);
+	m_player->setGround(adjusted_player_yPosition);
 	float groundY = 225.0f;
-	float bossX = GetScreenWidth() - 250.0f;
+	float bossX = GetScreenWidth() - 140.0f;
 
-	m_boss.setGround(groundY);
-	m_boss.setPosition(bossX, groundY);
+	m_boss.setGround(adjusted_player_yPosition);
+	m_boss.setPosition(bossX, adjusted_player_yPosition-42.0f);
     m_stageTimer = kStageTextDuration;
+	if (FileExists(kBossBgmPath)) {
+		m_bgm = LoadMusicStream(kBossBgmPath);
+		SetMusicVolume(m_bgm, 1.0f);
+
+		PlayMusicStream(m_bgm);
+	}
+}
+
+BossState::~BossState() {
+	stopBgm();
+	if (m_background.id != 0) {
+		UnloadTexture(m_background);
+		m_background = Texture2D{};
+	}
 }
 void BossState::Update(StateManager& manager) {
 	const float dt = GetFrameTime();
+	if (m_bgm.stream.buffer != nullptr) {
+		UpdateMusicStream(m_bgm);
+	}
 	if (!m_resultTriggered) {
 		m_stageElapsed += dt;
 	}
 
-	m_player.update(dt);
+	m_player->update(dt);
 	m_boss.update(dt);
+	if (m_contactTimer > 0.0f) {
+		m_contactTimer -= dt;
+	}
 
 	if (m_boss.consumeShockwaveEvent()) {
 		spawnShockwave();
@@ -65,23 +94,37 @@ void BossState::Update(StateManager& manager) {
 
 	updateShockwaves(dt);
 
-	if (!m_player.isDead() && !m_boss.isDead()) {
+	const Rectangle bossHitBox = m_boss.getHitBox();
+	const Vector2 playerPos = m_player->getPosition();
+	const Vector2 playerRadius = m_player->radius();
+	const Rectangle playerBounds{playerPos.x, playerPos.y, playerRadius.x, playerRadius.y};
+
+	if (m_contactTimer <= 0.0f && !m_player->isDead() && !m_boss.isDead()) {
+		if (CheckCollisionRecs(playerBounds, bossHitBox)) {
+			m_player->applyDamage(kBossContactDamage);
+			m_contactTimer = kBossContactCooldown;
+		}
+	}
+
+	if (!m_player->isDead() && !m_boss.isDead()&& !m_player->getAttackHit()) {
 		if (CheckCollisionRecs(
-			m_player.getAttackHitBox(),
-			m_boss.getHitBox())) {
-			m_boss.applyDamage(10);
-			m_player.setAttackHit(true);
+			m_player->getAttackHitBox(),
+			bossHitBox)) {
+			m_boss.applyDamage(m_player->getAttackPower());
+			m_player->setAttackHit(true);
 		}
 	}
 	DrawRectangleLinesEx(
-		m_boss.getHitBox(), 2.0f, BLUE
+		bossHitBox, 2.0f, BLUE
 	);
 
-	if (!m_resultTriggered && (m_player.isDead() || m_boss.isDead())) {
+	if (!m_resultTriggered && (m_player->isDead() || m_boss.isDead())) {
 		m_resultTriggered = true;
 		manager.ChangeState<ResultState>(m_stageElapsed, [](StateManager& restartManager) {
 			restartManager.ChangeState<PlayState>();
 		});
+		stopBgm();
+
 		return;
 	}
 
@@ -98,13 +141,13 @@ void BossState::Draw() {
 //        RED
 //    );
 
-ClearBackground(BLACK);
+drawBackground();
 drawGround();
 
-m_player.render();
+m_player->render();
 m_boss.render();
 drawShockwaves();
-m_player.draw();
+m_player->draw();
 drawBossHp();
 drawPlayerHp();
 if (m_stageTimer > 0.0f) {
@@ -130,6 +173,28 @@ if (m_stageTimer > -kStageTextFadeOut) {
 }
 
 }
+
+void BossState::loadBackground() {
+	if (FileExists(kBossBackgroundPath)) {
+		m_background = LoadTexture(kBossBackgroundPath);
+	}
+}
+
+void BossState::drawBackground() const {
+	ClearBackground(kBossClearColor);
+	if (m_background.id == 0) {
+		return;
+	}
+
+	const float screenW = static_cast<float>(GetScreenWidth());
+	const float screenH = static_cast<float>(GetScreenHeight());
+	const float scaleX = screenW / static_cast<float>(m_background.width);
+	const float scaleY = screenH / static_cast<float>(m_background.height);
+	const float scale = std::max(scaleX, scaleY);
+	const Rectangle src{0.0f, 0.0f, static_cast<float>(m_background.width), static_cast<float>(m_background.height)};
+	const Rectangle dest{0.0f, 0.0f, m_background.width * scale, m_background.height * scale};
+	DrawTexturePro(m_background, src, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
+}
 void BossState::spawnShockwave() {
 	Shockwave wave{};
 	const Rectangle bossHit = m_boss.getHitBox();
@@ -153,8 +218,8 @@ void BossState::updateShockwaves(float dt) {
 	}
 
 	const float delta = kShockwaveSpeed * dt;
-	const Vector2 playerPos = m_player.getPosition();
-	const Vector2 playerRadius = m_player.radius();
+	const Vector2 playerPos = m_player->getPosition();
+	const Vector2 playerRadius = m_player->radius();
 	Rectangle playerBounds{playerPos.x, playerPos.y, playerRadius.x, playerRadius.y};
 
 	for (Shockwave& wave : m_shockwaves) {
@@ -171,8 +236,8 @@ void BossState::updateShockwaves(float dt) {
 			continue;
 		}
 
-		if (!m_player.isDead() && CheckCollisionRecs(wave.bounds, playerBounds)) {
-			m_player.applyDamage(kShockwaveDamage);
+		if (!m_player->isDead() && CheckCollisionRecs(wave.bounds, playerBounds)) {
+			m_player->applyDamage(kShockwaveDamage);
 			wave.active = false;
 		}
 	}
@@ -232,8 +297,8 @@ void BossState::drawBossHp() const {
 }
 
 void BossState::drawPlayerHp() const {
-	const int hp = m_player.health();
-	const int maxHp = std::max(1, m_player.maxHealth());
+	const int hp = m_player->health();
+	const int maxHp = std::max(1, m_player->maxHealth());
 	const float ratio = static_cast<float>(hp) / static_cast<float>(maxHp);
 	const float barWidth = kPlayerHpBarWidth;
 	const float barHeight = kPlayerHpBarHeight;
@@ -249,9 +314,15 @@ void BossState::drawPlayerHp() const {
 void BossState::drawGround() const {
     //std::cout << "Draw Ground!" << std::endl;
     const Rectangle soil{0.0f, m_groundY, static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()) - m_groundY};
- //   DrawRectangleRec(soil, kSoilColor);
+    DrawRectangleRec(soil, kSoilColor);
     DrawRectangle(0, static_cast<int>(m_groundY) - kGroundOffset, GetScreenWidth(), kGroundThickness, kGroundColor);
 }
-
+void BossState::stopBgm() {
+	if (m_bgm.stream.buffer != nullptr) {
+		StopMusicStream(m_bgm);
+		UnloadMusicStream(m_bgm);
+		m_bgm = Music{};
+	}
+}
 
 } // namespace ks

@@ -208,7 +208,7 @@ void Boss::drawSprite(const Vector2& drawPos) const {
         frameHeight
     };
 
-    const Rectangle dest{drawPos.x, drawPos.y, m_radius.x, m_radius.y};
+    const Rectangle dest{drawPos.x, drawPos.y-10.0f, m_radius.x, m_radius.y};
     const Vector2 origin{0.0f, 0.0f};
 
     DrawTexturePro(s_spriteSheet, src, dest, origin, 0.0f, WHITE);

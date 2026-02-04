@@ -30,8 +30,8 @@ void PlayerAttackState::update(Entity& owner, float dt) {
 	}
 
     float direction = 0.0f;
-    if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) { direction -= 1.0f; }
-    if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) { direction += 1.0f; }
+    if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) { direction -= 1.5f; }
+    if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) { direction += 1.5f; }
 
     player->moveHorizontally(direction, dt);
 

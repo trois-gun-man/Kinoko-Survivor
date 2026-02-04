@@ -37,6 +37,7 @@
                 "entities/Player.cpp",
                 "entities/Boss.cpp",
                 "systems/factories/EnemySpawner.cpp",
+                "systems/ai/SimpleChaseAI.cpp",
                 "systems/state_machine/EnemyChaseState.cpp",
                 "systems/state_machine/PlayerMoveState.cpp",
                 "systems/state_machine/PlayerAttackState.cpp",
